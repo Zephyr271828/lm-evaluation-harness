@@ -374,12 +374,27 @@ def simple_evaluate(
         setup_logging(verbosity=verbosity)
 
     if lm.rank == 0:
-        if isinstance(model, str):
-            model_name = model
-        elif hasattr(model, "config") and hasattr(model.config, "_name_or_path"):
-            model_name = model.config._name_or_path
-        else:
-            model_name = type(model).__name__
+        # if isinstance(model, str):
+        #     model_name = model
+        # elif hasattr(model, "config") and hasattr(model.config, "_name_or_path"):
+        #     model_name = model.config._name_or_path
+        # else:
+        #     model_name = type(model).__name__
+        if lm.rank == 0:
+            if isinstance(model, str):
+                model_name = model
+            else:
+                model_name = type(model).__name__  # Default fallback
+
+                # Try HuggingFace-style
+                try:
+                    model_name = model.config._name_or_path
+                except Exception:
+                    # Try MaxText-style
+                    try:
+                        model_name = model.config.model_name
+                    except Exception:
+                        pass  # Leave fallback name
 
         # add info about the model and few shot config
         results["config"] = {
