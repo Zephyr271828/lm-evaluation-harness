@@ -18,7 +18,7 @@ export XLA_PYTHON_CLIENT_MEM_FRACTION=0.9
 export XLA_PYTHON_CLIENT_ALLOCATOR=platform
 export JAX_DISABLE_MOST_OPTIMIZATIONS=False
 
-export PYTHONPATH='/home/zephyr/gcs-bucket/maxtext':$PYTHONPATH
+export PYTHONPATH='/home/zephyr/maxtext':$PYTHONPATH
 python3 -u /home/zephyr/gcs-bucket/lm-evaluation-harness/scripts/test_orbax_eval.py \
     /home/zephyr/gcs-bucket/maxtext/MaxText/configs/base.yml \
     load_parameters_path=${UNSCANNED_CKPT_PATH} \
