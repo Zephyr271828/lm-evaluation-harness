@@ -24,7 +24,7 @@ export DIRECT_PARAMETER_CHECKPOINT_RUN="direct_generate_param_only_checkpoint_${
 export UNSCANNED_CKPT_PATH="${BASE_OUTPUT_DIRECTORY}/${DIRECT_PARAMETER_CHECKPOINT_RUN}/checkpoints/0/items"
 
 
-export PYTHONPATH='/home/zephyr/maxtext':$PYTHONPATH
+export PYTHONPATH=$(pwd)/..:$PYTHONPATH
 python3 -u scripts/test_orbax_eval.py \
     ../MaxText/configs/base.yml \
     load_parameters_path=${UNSCANNED_CKPT_PATH} \
