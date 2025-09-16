@@ -3,7 +3,8 @@
 set +x
 set -eo pipefail
 
-export MODEL='llama3.1-8b'
+# export MODEL='llama3.1-8b'
+export MODEL='llama3-4b-depth'
 export bucket_name=llm_pruning_us_central2_b
 export BASE_OUTPUT_DIRECTORY="gs://$bucket_name/model_ckpts/maxtext"
 export DIRECT_PARAMETER_CHECKPOINT_RUN="direct_generate_param_only_checkpoint_${MODEL}"
@@ -18,9 +19,14 @@ export XLA_PYTHON_CLIENT_MEM_FRACTION=0.9
 export XLA_PYTHON_CLIENT_ALLOCATOR=platform
 export JAX_DISABLE_MOST_OPTIMIZATIONS=False
 
+
+export DIRECT_PARAMETER_CHECKPOINT_RUN="direct_generate_param_only_checkpoint_${MODEL}_lr_3e-4_no_q_scale"
+export UNSCANNED_CKPT_PATH="${BASE_OUTPUT_DIRECTORY}/${DIRECT_PARAMETER_CHECKPOINT_RUN}/checkpoints/0/items"
+
+
 export PYTHONPATH='/home/zephyr/maxtext':$PYTHONPATH
-python3 -u /home/zephyr/gcs-bucket/lm-evaluation-harness/scripts/test_orbax_eval.py \
-    /home/zephyr/gcs-bucket/maxtext/MaxText/configs/base.yml \
+python3 -u scripts/test_orbax_eval.py \
+    ../MaxText/configs/base.yml \
     load_parameters_path=${UNSCANNED_CKPT_PATH} \
     run_name=forward_pass_test \
     per_device_batch_size=1 \
@@ -34,8 +40,8 @@ python3 -u /home/zephyr/gcs-bucket/lm-evaluation-harness/scripts/test_orbax_eval
     --hf_model_path=${HF_MODEL_PATH}
 
 # decode example
-idx=0
-TOKENIZER='/home/zephyr/gcs-bucket/maxtext/assets/tokenizer_llama3.tiktoken'
+# idx=0
+# TOKENIZER='/home/zephyr/maxtext/assets/tokenizer_llama3.tiktoken'
 # python3 -m MaxText.decode \
 #     /home/zephyr/gcs-bucket/maxtext/MaxText/configs/base.yml \
 #     load_parameters_path=${UNSCANNED_CKPT_PATH} \
