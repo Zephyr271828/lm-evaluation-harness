@@ -30,11 +30,11 @@ from jax.experimental import mesh_utils
 
 
 PPL_TASKS = [
-    # "c4",
+    "c4",
     "wikitext",
     "wikitext2",
-    # "cnn_dailymail",
-    # "dclm"
+    "cnn_dailymail",
+    "dclm"
 ]
 
 TASK_CONFIG = {
@@ -277,16 +277,16 @@ def main(config, test_args):
 
     model = OrbaxLM(orbax_model, orbax_state, tokenizer, config, state_mesh_shardings, mesh)
     
-    # ppl_res = get_ppl(
-    #     model, 
-    #     tokenizer, 
-    #     # batch_size=config.global_batch_size_to_train_on, 
-    #     batch_size=1,
-    #     max_length=config.max_target_length, 
-    #     tasks=PPL_TASKS
-    # )
-    # ppl_res = get_ppl(model, tokenizer, tasks=['dclm'])
-    # print(ppl_res)
+    ppl_res = get_ppl(
+        model, 
+        tokenizer, 
+        # batch_size=config.global_batch_size_to_train_on, 
+        batch_size=1,
+        max_length=config.max_target_length, 
+        tasks=PPL_TASKS
+    )
+    ppl_res = get_ppl(model, tokenizer, tasks=['dclm'])
+    print(ppl_res)
 
     acc_res = get_acc(model, tokenizer, tasks=TASK_CONFIG.keys())
     # acc_res = get_acc(model, tokenizer, tasks=['winogrande'])
