@@ -30,10 +30,17 @@ from jax.experimental import mesh_utils
 
 
 PPL_TASKS = [
+<<<<<<< HEAD
     "c4",
     "wikitext",
     "wikitext2",
     "cnn_dailymail",
+=======
+    # "c4",
+    # "wikitext",
+    # "wikitext2",
+    # "cnn_dailymail",
+>>>>>>> 338e44a7d90d3b30817ea31fd487f529e9e07742
     "dclm"
 ]
 
@@ -143,29 +150,19 @@ def get_ppl_enc(task, tokenizer):
         text_column = "text"
         testenc = tokenizer.encode(" ".join(dataset[:8192][text_column]), return_tensors='pt')
     elif task == 'dclm':
-        # data_paths = [
-        #     '/datasets/dclm_baseline_1_0/dclm_baseline_1.0.val.jsonl',
-        #     '/vast/yx3038/datasets/dclm/dclm_baseline_1.0_shuffled/dclm_baseline_1.0.val.jsonl'
-        # ]   
-        # for data_path in data_paths:
-        #     if os.path.exists(data_path):
-        #         dataset = load_dataset(
-        #             "json",
-        #             data_files={"train": data_path},
-        #             split="train",
-        #             verification_mode="no_checks"
-        #         )
-        #         text_column = "text"
-        #         testenc = tokenizer.encode(" ".join(dataset[:1400][text_column]), return_tensors='pt')
-        #         break
-            
-
+        # dataset = load_dataset(
+        #     "mlfoundations/dclm-baseline-1.0",
+        #     data_files="global-shard_05_of_10/local-shard_0_of_10/shard_00000000_processed.jsonl.zst",
+        #     split="train",
+        #     verification_mode="no_checks",
+        #     trust_remote_code=True
+        # )
+        
         dataset = load_dataset(
-            "mlfoundations/dclm-baseline-1.0",
-            data_files="global-shard_05_of_10/local-shard_0_of_10/shard_00000000_processed.jsonl.zst",
+            "json",
+            data_files={"train": "/home/zephyr/gcs-bucket/datasets/dclm/dclm_baseline_1.0.val.jsonl"},
             split="train",
-            verification_mode="no_checks",
-            trust_remote_code=True
+            verification_mode="no_checks"
         )
         text_column = "text"
         testenc = tokenizer.encode(" ".join(dataset[:8192][text_column]), return_tensors='pt')
@@ -289,7 +286,6 @@ def main(config, test_args):
     print(ppl_res)
 
     acc_res = get_acc(model, tokenizer, tasks=TASK_CONFIG.keys())
-    # acc_res = get_acc(model, tokenizer, tasks=['winogrande'])
     print(acc_res)
     
 if __name__ == "__main__":
