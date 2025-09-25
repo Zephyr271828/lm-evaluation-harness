@@ -4,27 +4,37 @@ set +x
 set -eo pipefail
 
 # export MODEL='llama3.1-8b'
-export MODEL='llama3-4b-depth'
+export MODEL='llama3.1-1.5b-depth'
 export bucket_name=llm_pruning_us_central2_b
 export BASE_OUTPUT_DIRECTORY="gs://$bucket_name/model_ckpts/maxtext"
 export DIRECT_PARAMETER_CHECKPOINT_RUN="direct_generate_param_only_checkpoint_${MODEL}"
 
 export HF_MODEL_PATH='/home/zephyr/gcs-bucket/model_ckpts/Llama-3.1-8B'
-export UNSCANNED_CKPT_PATH="${BASE_OUTPUT_DIRECTORY}/${DIRECT_PARAMETER_CHECKPOINT_RUN}/checkpoints/0/items"
 
 export CONVERTED_CHECKPOINT_PATH="gs://$bucket_name/model_ckpts/maxtext/${MODEL}"
-export CONVERTED_CHECKPOINT="${CONVERTED_CHECKPOINT_PATH}/0/items"
+
+export CONVERTED_CHECKPOINT="gs://$bucket_name/model_ckpts/maxtext/llama3.1-1.5b-depth_S50_seqlen_8192_bs_4_grad_accum_4_lr_3.e-4_min_lr_ratio_0.1_warmup_ratio_0.05_test2/checkpoints/12499/items"
 
 export XLA_PYTHON_CLIENT_MEM_FRACTION=0.9
 export XLA_PYTHON_CLIENT_ALLOCATOR=platform
 export JAX_DISABLE_MOST_OPTIMIZATIONS=False
 
-
 export DIRECT_PARAMETER_CHECKPOINT_RUN="direct_generate_param_only_checkpoint_${MODEL}_lr_3e-4_no_q_scale"
 export UNSCANNED_CKPT_PATH="${BASE_OUTPUT_DIRECTORY}/${DIRECT_PARAMETER_CHECKPOINT_RUN}/checkpoints/0/items"
 
+cd ..
+export PYTHONPATH=$(pwd):$PYTHONPATH
+python3 -m MaxText.generate_param_only_checkpoint \
+    MaxText/configs/base.yml \
+    checkpoint_dir=${BASE_OUTPUT_DIRECTORY} \
+    base_output_directory=${BASE_OUTPUT_DIRECTORY} \
+    load_parameters_path=${CONVERTED_CHECKPOINT} \
+    run_name=${DIRECT_PARAMETER_CHECKPOINT_RUN} \
+    model_name=$MODEL \
+    force_unroll=true
 
-export PYTHONPATH=$(pwd)/..:$PYTHONPATH
+cd lm-evaluation-harness
+export PYTHONPATH=$(pwd):$PYTHONPATH
 python3 -u scripts/test_orbax_eval.py \
     ../MaxText/configs/base.yml \
     load_parameters_path=${UNSCANNED_CKPT_PATH} \

@@ -149,6 +149,7 @@ def get_ppl_enc(task, tokenizer):
             data_files={"train": data_path},
             split="train",
             verification_mode="no_checks"
+            verification_mode="no_checks"
         )
         text_column = "text"
         testenc = tokenizer.encode(" ".join(dataset[:8192][text_column]), return_tensors='pt')
@@ -260,19 +261,18 @@ def main(config, test_args):
 
     model = OrbaxLM(orbax_model, orbax_state, tokenizer, config, state_mesh_shardings, mesh)
     
-    # ppl_res = get_ppl(
-    #     model, 
-    #     tokenizer, 
-    #     # batch_size=config.global_batch_size_to_train_on, 
-    #     batch_size=1,
-    #     max_length=config.max_target_length, 
-    #     tasks=PPL_TASKS
-    # )
-    # ppl_res = get_ppl(model, tokenizer, tasks=['dclm'])
-    # print(ppl_res)
+    ppl_res = get_ppl(
+        model, 
+        tokenizer, 
+        # batch_size=config.global_batch_size_to_train_on, 
+        batch_size=1,
+        max_length=config.max_target_length, 
+        tasks=PPL_TASKS
+    )
+    ppl_res = get_ppl(model, tokenizer, tasks=['dclm'])
+    print(ppl_res)
 
     acc_res = get_acc(model, tokenizer, tasks=TASK_CONFIG.keys())
-    # acc_res = get_acc(model, tokenizer, tasks=['winogrande'])
     print(acc_res)
     
 if __name__ == "__main__":
