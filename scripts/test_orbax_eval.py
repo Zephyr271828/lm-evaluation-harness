@@ -28,6 +28,16 @@ from MaxText.layers import quantizations
 from jax.sharding import Mesh
 from jax.experimental import mesh_utils
 
+def str2bool(v):
+    if isinstance(v, bool):
+        return v
+    val = v.lower()
+    if val in ("yes", "true", "t", "y", "1"):
+        return True
+    elif val in ("no", "false", "f", "n", "0"):
+        return False
+    else:
+        raise argparse.ArgumentTypeError("Boolean value expected (yes/no/true/false)")
 
 PPL_TASKS = [
     "c4",
@@ -119,19 +129,19 @@ def set_seed(seed: int):
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
 
-def get_ppl_enc(task, tokenizer):
+def get_ppl_enc(task, tokenizer, add_special_tokens: bool = True):
     if task == 'wikitext':
         dataset = load_dataset("wikitext", "wikitext-103-v1", split="train", trust_remote_code=True)
         text_column = "text"
-        testenc = tokenizer.encode("\n\n".join(dataset[:32768][text_column]), return_tensors='pt')
+        testenc = tokenizer.encode("\n\n".join(dataset[:32768][text_column]), return_tensors='pt', add_special_tokens=add_special_tokens)
     elif task == 'wikitext2':
         dataset = load_dataset("wikitext", "wikitext-2-raw-v1", split="train", trust_remote_code=True)
         text_column = "text"
-        testenc = tokenizer.encode("\n\n".join(dataset[:32768][text_column]), return_tensors='pt')
+        testenc = tokenizer.encode("\n\n".join(dataset[:32768][text_column]), return_tensors='pt', add_special_tokens=add_special_tokens)
     elif task == 'cnn_dailymail':
         dataset = load_dataset("cnn_dailymail", "3.0.0", split="train", trust_remote_code=True)
         text_column = "article"
-        testenc = tokenizer.encode(" ".join(dataset[:16384][text_column]), return_tensors='pt')
+        testenc = tokenizer.encode(" ".join(dataset[:16384][text_column]), return_tensors='pt', add_special_tokens=add_special_tokens)
     elif task == 'c4':
         dataset = load_dataset(
             "allenai/c4", 
@@ -141,7 +151,7 @@ def get_ppl_enc(task, tokenizer):
             trust_remote_code=True
         )
         text_column = "text"
-        testenc = tokenizer.encode(" ".join(dataset[:8192][text_column]), return_tensors='pt')
+        testenc = tokenizer.encode(" ".join(dataset[:8192][text_column]), return_tensors='pt', add_special_tokens=add_special_tokens)
     elif task == 'dclm':
         data_path = "/home/zephyr/gcs-bucket/datasets/dclm/dclm_baseline_1.0.val.jsonl"
         dataset = load_dataset(
@@ -152,7 +162,7 @@ def get_ppl_enc(task, tokenizer):
             verification_mode="no_checks"
         )
         text_column = "text"
-        testenc = tokenizer.encode(" ".join(dataset[:8192][text_column]), return_tensors='pt')
+        testenc = tokenizer.encode(" ".join(dataset[:8192][text_column]), return_tensors='pt', add_special_tokens=add_special_tokens)
     else:
         raise NotImplementedError(f"Unsupported task: {task}")
     return testenc
@@ -163,7 +173,8 @@ def get_ppl(
     tasks,
     batch_size: int = 1,
     calib_size: int = 256,
-    max_length: int = 2048
+    max_length: int = 8192,
+    add_special_tokens: bool = True
 ):
     # devices_in_data_fsdp = model.devices_in_data_fsdp
     # if batch_size % devices_in_data_fsdp != 0:
@@ -172,7 +183,7 @@ def get_ppl(
     
     ppl_res = {}
     for task in tasks:
-        testenc = get_ppl_enc(task, tokenizer)
+        testenc = get_ppl_enc(task, tokenizer, add_special_tokens=add_special_tokens)
         tot_loss = 0
         tot_tokens = 0
         bs = batch_size
@@ -267,7 +278,8 @@ def main(config, test_args):
         # batch_size=config.global_batch_size_to_train_on, 
         batch_size=1,
         max_length=config.max_target_length, 
-        tasks=PPL_TASKS
+        tasks=PPL_TASKS,
+        add_special_tokens=test_args.add_special_tokens
     )
     ppl_res = get_ppl(model, tokenizer, tasks=['dclm'])
     print(ppl_res)
@@ -287,6 +299,7 @@ if __name__ == "__main__":
     parser.add_argument("--golden_logits_path", type=str, required=False, default="")
     parser.add_argument("--hf_model_path", type=str, required=False, default="")
     parser.add_argument("--run_hf_model", type=bool, required=False, default=False)
+    parser.add_argument('--add_special_tokens', type=str2bool, default=True)
     test_args, _ = parser.parse_known_args()
 
     # Remove args defined in this test file to avoid error from pyconfig

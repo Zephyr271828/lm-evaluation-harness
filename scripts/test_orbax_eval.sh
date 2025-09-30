@@ -47,7 +47,8 @@ python3 -u scripts/test_orbax_eval.py \
     dtype=bfloat16 \
     scan_layers=false \
     attention="dot_product" \
-    --hf_model_path=${HF_MODEL_PATH}
+    --hf_model_path=${HF_MODEL_PATH} \
+    --add_special_tokens=False
 
 # decode example
 # idx=0
