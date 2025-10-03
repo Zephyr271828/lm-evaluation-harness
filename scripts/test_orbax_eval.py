@@ -159,7 +159,6 @@ def get_ppl_enc(task, tokenizer, add_special_tokens: bool = True):
             data_files={"train": data_path},
             split="train",
             verification_mode="no_checks"
-            verification_mode="no_checks"
         )
         text_column = "text"
         testenc = tokenizer.encode(" ".join(dataset[:8192][text_column]), return_tensors='pt', add_special_tokens=add_special_tokens)
