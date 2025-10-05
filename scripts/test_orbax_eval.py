@@ -311,6 +311,7 @@ if __name__ == "__main__":
         "--golden_logits_path",
         "--hf_model_path",
         "--run_hf_model",
+        "--add_special_tokens",
     ]
     for arg in to_remove_args:
         model_args = [s for s in model_args if not s.startswith(arg)]
