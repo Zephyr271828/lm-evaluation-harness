@@ -277,13 +277,12 @@ def main(config, test_args):
         # batch_size=config.global_batch_size_to_train_on, 
         batch_size=1,
         max_length=config.max_target_length, 
-        tasks=PPL_TASKS,
+        tasks=[t for t in PPL_TASKS if (test_args.tasks is None or t in test_args.tasks)],
         add_special_tokens=test_args.add_special_tokens
     )
-    ppl_res = get_ppl(model, tokenizer, tasks=['dclm'])
     print(ppl_res)
 
-    acc_res = get_acc(model, tokenizer, tasks=TASK_CONFIG.keys())
+    acc_res = get_acc(model, tokenizer, tasks=[t for t in TASK_CONFIG.keys() if (test_args.tasks is None or t in test_args.tasks)])
     print(acc_res)
     
 if __name__ == "__main__":
@@ -299,6 +298,7 @@ if __name__ == "__main__":
     parser.add_argument("--hf_model_path", type=str, required=False, default="")
     parser.add_argument("--run_hf_model", type=bool, required=False, default=False)
     parser.add_argument('--add_special_tokens', type=str2bool, default=True)
+    parser.add_argument("--tasks", type=lambda x: x.split(","))
     test_args, _ = parser.parse_known_args()
 
     # Remove args defined in this test file to avoid error from pyconfig
@@ -312,6 +312,7 @@ if __name__ == "__main__":
         "--hf_model_path",
         "--run_hf_model",
         "--add_special_tokens",
+        "--tasks"
     ]
     for arg in to_remove_args:
         model_args = [s for s in model_args if not s.startswith(arg)]
