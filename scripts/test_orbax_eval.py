@@ -298,7 +298,7 @@ if __name__ == "__main__":
     parser.add_argument("--hf_model_path", type=str, required=False, default="")
     parser.add_argument("--run_hf_model", type=bool, required=False, default=False)
     parser.add_argument('--add_special_tokens', type=str2bool, default=True)
-    parser.add_argument("--tasks", type=lambda x: x.split(","))
+    parser.add_argument("--tasks", type=lambda x: [] if not x else x.split(","), default=[])
     test_args, _ = parser.parse_known_args()
 
     # Remove args defined in this test file to avoid error from pyconfig
