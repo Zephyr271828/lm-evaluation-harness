@@ -277,12 +277,12 @@ def main(config, test_args):
         # batch_size=config.global_batch_size_to_train_on, 
         batch_size=1,
         max_length=config.max_target_length, 
-        tasks=[t for t in PPL_TASKS if (test_args.tasks is None or t in test_args.tasks)],
+        tasks=[t for t in PPL_TASKS if (not test_args.tasks or t in test_args.tasks)],
         add_special_tokens=test_args.add_special_tokens
     )
     print(ppl_res)
 
-    acc_res = get_acc(model, tokenizer, tasks=[t for t in TASK_CONFIG.keys() if (test_args.tasks is None or t in test_args.tasks)])
+    acc_res = get_acc(model, tokenizer, tasks=[t for t in TASK_CONFIG.keys() if (not test_args.tasks or t in test_args.tasks)])
     print(acc_res)
     
 if __name__ == "__main__":
