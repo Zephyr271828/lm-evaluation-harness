@@ -49,18 +49,31 @@ PPL_TASKS = [
 
 TASK_CONFIG = {
     "winogrande": {
-        # "num_fewshot": 5,
         "num_fewshot": 0,
         "acc_key": "acc,none",
     },
+    "winogrande": {
+        "num_fewshot": 5,
+        "acc_key": "acc,none",
+    },
     "arc_challenge": {
-        # "num_fewshot": 25,
+        "num_fewshot": 0,
+        "acc_key": "acc_norm,none",
+    },
+    "arc_challenge": {
+        "num_fewshot": 25,
+        "acc_key": "acc_norm,none",
+    },
+    "arc_easy": {
         "num_fewshot": 0,
         "acc_key": "acc_norm,none",
     },
     "hellaswag": {
-        # "num_fewshot": 10,
         "num_fewshot": 0,
+        "acc_key": "acc_norm,none",
+    },
+    "hellaswag": {
+        "num_fewshot": 10,
         "acc_key": "acc_norm,none",
     },
     "truthfulqa_mc1": {
@@ -83,10 +96,6 @@ TASK_CONFIG = {
         "num_fewshot": 0,
         "acc_key": "acc,none",
     },
-    "arc_easy": {
-        "num_fewshot": 0,
-        "acc_key": "acc_norm,none",
-    },
     "anli_r1": {
         "num_fewshot": 0,
         "acc_key": None,
@@ -108,8 +117,11 @@ TASK_CONFIG = {
         "acc_key": None,
     },
     "mmlu": {
-        # "num_fewshot": 5,
         "num_fewshot": 0,
+        "acc_key": None,
+    },
+    "mmlu": {
+        "num_fewshot": 5,
         "acc_key": None,
     },
     "record": {
