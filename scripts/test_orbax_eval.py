@@ -260,7 +260,7 @@ def get_acc(model, tokenizer, tasks, task_range=[]):
     #     }
     # )
     if task_range:
-        tasks = (cfg for cfg in tasks if cfg["name"] in task_range)
+        tasks = [cfg for cfg in tasks if cfg["name"] in task_range]
     
     print("tasks to evaluate:")
     print(json.dumps(tasks, indent=2))
