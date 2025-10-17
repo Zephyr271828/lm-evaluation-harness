@@ -2,6 +2,7 @@
 # requirements: 
 # pip install sacrebleu accelerate peft 
 import os
+import json
 import jax
 import jax.numpy as jnp
 import numpy as np
