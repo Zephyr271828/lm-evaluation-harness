@@ -249,7 +249,7 @@ def get_ppl(
                 
     return ppl_res
 
-def get_acc(model, tokenizer, tasks, task_range=[]):
+def get_acc(model, tokenizer, tasks, task_range=[], limit=1000000):
     # lm_eval_model = models.orbax_lm.HFLM(
     #     pretrained=model, 
     #     tokenizer=tokenizer,
@@ -275,6 +275,7 @@ def get_acc(model, tokenizer, tasks, task_range=[]):
             log_samples=True,
             # task_kwargs={"limit": 256}, 
             confirm_run_unsafe_code=True,
+            limit=limit
         )
         
         print(res['results'][task])
@@ -316,10 +317,11 @@ def main(config, test_args):
         tokenizer, 
         # batch_size=config.global_batch_size_to_train_on, 
         batch_size=1,
+        calib_size=min(256, test_args.limit),
         max_length=config.max_target_length, 
         tasks=PPL_TASKS,
         add_special_tokens=test_args.add_special_tokens,
-        task_range=test_args.tasks
+        task_range=test_args.tasks,
     )
     print(ppl_res)
 
@@ -327,7 +329,8 @@ def main(config, test_args):
         model,
         tokenizer,
         tasks=ACC_TASKS,
-        task_range=test_args.tasks
+        task_range=test_args.tasks,
+        limit=test_args.limit
     )
     print(acc_res)
     
@@ -344,6 +347,7 @@ if __name__ == "__main__":
     parser.add_argument("--hf_model_path", type=str, required=False, default="")
     parser.add_argument("--run_hf_model", type=bool, required=False, default=False)
     parser.add_argument('--add_special_tokens', type=str2bool, default=True)
+    parser.add_argument("--limit", type=int, default=1000000)
     parser.add_argument("--tasks", type=lambda x: [] if not x else x.split(","), default=[])
     test_args, _ = parser.parse_known_args()
 
@@ -358,6 +362,7 @@ if __name__ == "__main__":
         "--hf_model_path",
         "--run_hf_model",
         "--add_special_tokens",
+        "--limit",
         "--tasks"
     ]
     for arg in to_remove_args:
