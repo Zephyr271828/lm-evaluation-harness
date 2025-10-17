@@ -47,90 +47,108 @@ PPL_TASKS = [
     "dclm"
 ]
 
-TASK_CONFIG = {
-    "winogrande": {
+ACC_TASKS = [
+    {
+        "name": "winogrande",
         "num_fewshot": 0,
         "acc_key": "acc,none",
     },
-    "winogrande": {
+    {
+        "name": "winogrande",
         "num_fewshot": 5,
         "acc_key": "acc,none",
     },
-    "arc_challenge": {
+    {
+        "name": "arc_easy",
         "num_fewshot": 0,
         "acc_key": "acc_norm,none",
     },
-    "arc_challenge": {
+    {
+        "name": "arc_challenge",
+        "num_fewshot": 0,
+        "acc_key": "acc_norm,none",
+    },
+    {
+        "name": "arc_challenge",
         "num_fewshot": 25,
         "acc_key": "acc_norm,none",
     },
-    "arc_easy": {
+    {
+        "name": "hellaswag",
         "num_fewshot": 0,
         "acc_key": "acc_norm,none",
     },
-    "hellaswag": {
-        "num_fewshot": 0,
-        "acc_key": "acc_norm,none",
-    },
-    "hellaswag": {
+    {
+        "name": "hellaswag",        
         "num_fewshot": 10,
         "acc_key": "acc_norm,none",
     },
-    "truthfulqa_mc1": {
+    {
+        "name": "truthfulqa_mc1",
         "num_fewshot": 0,
         "acc_key": "acc,none",
     },
-    "truthfulqa_mc2": {
+    {
+        "name": "truthfulqa_mc2",
         "num_fewshot": 0,
         "acc_key": "acc,none",
     },
-    "piqa": {
+    {
+        "name": "piqa",
         "num_fewshot": 0,
         "acc_key": "acc_norm,none",
     },
-    "sciq": {
+    {
+        "name": "sciq",
         "num_fewshot": 0,
         "acc_key": "acc,none",
     },
-    "boolq": {
+    {
+        "name": "boolq",
         "num_fewshot": 0,
         "acc_key": "acc,none",
     },
-    "anli_r1": {
+    {
+        "name": "anli_r1",
         "num_fewshot": 0,
         "acc_key": None,
     },
-    "anli_r2": {
+    {
+        "name": "anli_r2",
         "num_fewshot": 0,
         "acc_key": None,
     },
-    "anli_r3": {
+    {
+        "name": "anli_r3",
         "num_fewshot": 0,
         "acc_key": None,
     },
-    "openbookqa": {
+    {
+        "name": "openbookqa",
         "num_fewshot": 0,
         "acc_key": None,
     },
-    "rte": {
+    {
+        "name": "rte",
         "num_fewshot": 0,
         "acc_key": None,
     },
-    "mmlu": {
+    {
+        "name": "mmlu",
         "num_fewshot": 0,
         "acc_key": None,
     },
-    "mmlu": {
+    {
+        "name": "mmlu",
         "num_fewshot": 5,
         "acc_key": None,
     },
-    "record": {
+    {
+        "name": "record",
         "num_fewshot": 0,
         "acc_key": None,
     },
-}
-
-ACC_TASKS = TASK_CONFIG.keys()
+]
 
 def set_seed(seed: int):
     random.seed(seed)
@@ -185,12 +203,15 @@ def get_ppl(
     batch_size: int = 1,
     calib_size: int = 256,
     max_length: int = 8192,
-    add_special_tokens: bool = True
+    add_special_tokens: bool = True,
+    task_range: list = []
 ):
     # devices_in_data_fsdp = model.devices_in_data_fsdp
     # if batch_size % devices_in_data_fsdp != 0:
     #     print(f"🔁 Adjusting batch_size {batch_size} → {devices_in_data_fsdp * ((batch_size + devices_in_data_fsdp - 1) // devices_in_data_fsdp)} for device mesh compatibility.")
     #     batch_size = devices_in_data_fsdp * ((batch_size + devices_in_data_fsdp - 1) // devices_in_data_fsdp)
+    if task_range:
+        tasks = [t for t in tasks if t in task_range]
     
     ppl_res = {}
     for task in tasks:
@@ -227,7 +248,7 @@ def get_ppl(
                 
     return ppl_res
 
-def get_acc(model, tokenizer, tasks):
+def get_acc(model, tokenizer, tasks, task_range=[]):
     # lm_eval_model = models.orbax_lm.HFLM(
     #     pretrained=model, 
     #     tokenizer=tokenizer,
@@ -237,12 +258,18 @@ def get_acc(model, tokenizer, tasks):
     #         "top_p": 0.95,
     #     }
     # )
+    if task_range:
+        tasks = (cfg for cfg in tasks if cfg["name"] in task_range)
+    
+    print("tasks to evaluate:")
+    print(json.dumps(tasks, indent=2))
     acc_res = {}
-    for task in tasks:
+    for cfg in tasks:
+        task = cfg["name"]
         res = evaluator.simple_evaluate(
             model=model,
             tasks=[task],
-            num_fewshot=TASK_CONFIG[task]["num_fewshot"],
+            num_fewshot=cfg["num_fewshot"],
             max_batch_size=32,
             log_samples=True,
             # task_kwargs={"limit": 256}, 
@@ -250,7 +277,7 @@ def get_acc(model, tokenizer, tasks):
         )
         
         print(res['results'][task])
-        acc_key = TASK_CONFIG[task]["acc_key"]
+        acc_key = cfg["acc_key"]
         if acc_key is not None:
             acc_res[task] = res['results'][task][acc_key]
 
@@ -289,12 +316,18 @@ def main(config, test_args):
         # batch_size=config.global_batch_size_to_train_on, 
         batch_size=1,
         max_length=config.max_target_length, 
-        tasks=[t for t in PPL_TASKS if (not test_args.tasks or t in test_args.tasks)],
-        add_special_tokens=test_args.add_special_tokens
+        tasks=PPL_TASKS,
+        add_special_tokens=test_args.add_special_tokens,
+        task_range=test_args.tasks
     )
     print(ppl_res)
 
-    acc_res = get_acc(model, tokenizer, tasks=[t for t in TASK_CONFIG.keys() if (not test_args.tasks or t in test_args.tasks)])
+    acc_res = get_acc(
+        model,
+        tokenizer,
+        tasks=ACC_TASKS,
+        task_range=test_args.tasks
+    )
     print(acc_res)
     
 if __name__ == "__main__":
