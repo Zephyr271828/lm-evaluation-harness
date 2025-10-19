@@ -29,6 +29,8 @@ from MaxText.layers import quantizations
 from jax.sharding import Mesh
 from jax.experimental import mesh_utils
 
+import math
+
 def str2bool(v):
     if isinstance(v, bool):
         return v
@@ -246,6 +248,8 @@ def get_ppl(
                 
             ppl_res[task] = torch.exp(torch.tensor(tot_loss / tot_tokens)).item()
             print(task, ppl_res[task])
+            if task == "dclm":
+                print("dclm val loss", math.log(ppl_res[task]))
                 
     return ppl_res
 
